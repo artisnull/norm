@@ -1,3 +1,4 @@
+# ReadMe is WIP
 Takes an array of objects with possible nested arrays of data, and returns a normalized and flattened
 representation based on the nodes defined.
 Data is normalized by the id you provide,
