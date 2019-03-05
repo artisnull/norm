@@ -1,71 +1,4 @@
-/**
- * Author: Zachariah Lambert
- * ----
- * Takes an array of objects with possible nested arrays of data, and returns a normalized and flattened 
- * representation based on the nodes defined.
- * Data is normalized by the id you provide,
- * resulting in the structure
- * {
- *      [name]: {
- *          byId: {
- *              [id]: node
- *          },
- *          allIds: [id]
- *      }
- * }
- *
- * DEF
- * ----------
- ** Node: {
- *  id: (string || number) defines what key should be used to normalize the dataset
- *  fields: (string[]) defines fields on this node that should also be normalized
- *  root: (boolean) defines node to start normalization on,
- * }
- *
- ** Options: {
- *  rename: (string) allows mapping a field to a different name
- *  - ex: addNode('name', ..., {rename: 'renamed'}) => renamed: {byId, allIds}
- *  additionalIds: (string[]) additional keys to add into each allIds item
- *      - ex: id: 'id', additionalIds: ['name'] => allIds[{id, name}]
- *  transform: (item) => transformedItem | transform the data prior to saving it,
- *  filter: (item) => (true|false): filter out an item from being saved
- *  parent: (string) name of parent key, specify this when to resolve naming conflicts
- *  resolve: (data) => slice : tell the schema where to find your field
- * }
- * 
- * API
- * ------------
- ** addNode(name, Node, Options) => null
- *  - adds a node to define how to normalize data
- *  - name must match the key of the field to be normalized
- *      - if desired to have the normalized key name different from the original, use options.rename
- * 
- ** normalize(data) => normalizedData
- *  - execute normalization on data, based on the defined nodes
- * 
- * EXAMPLE
- * ------------
-
- // assume data we are going to format looks like:
-        data = [{
-            root: {
-                id: 'rootId',
-                nest: [
-                    {
-                        name: 'nestName'
-                    },
-                    {
-                        name: 'nest2Name'
-                    }
-                ]
-            }
-        }]
-    const schema = new Schema()
-    schema.addNode('root', {id: 'id', root: true, fields: ['nest']})
-    schema.addNode('nest', {id: 'name'})
-    schema.normalize(data)
- */
-
+// Author Zachariah Lambert
 class Schema {
     constructor(config = { silent: true }) {
       this.nodes = new Map();
@@ -87,19 +20,25 @@ class Schema {
      * @param {string} node.id
      * @param {string[]} node.fields
      * @param {boolean} node.root
+     * @param {boolean} node.omit
      * @param {Object} options
      */
-    addNode(name, { id, fields, root = false }, options = {}) {
-      this._checkDefined([{ label: 'name', val: name }, { label: 'id', val: id }]);
+    addNode(name, { id = 'id', fields, root = false, omit = false }, options = {}) {
+      if (!name) {
+        throw new Error('Nodes must be named. First argument must be a string')
+      }
   
+      // fields should be an array
       let fieldsArr = fields;
       if (!Array.isArray(fieldsArr)) {
         fieldsArr = fields ? [fields] : [];
       }
   
       let currData = {};
+
+      // check if the node name has been defined already, and if it has, if the parent option is defined
       if (this.nodes.has(name) && !options.parent) {
-        console.warn('Duplicate node, but no parent specified. Use the parent option to avoid name conflicts');
+        !this.silent && console.warn('Duplicate node, but no parent specified. Use options.parent to resolve name conflicts');
       } else if (this.nodes.has(name)) {
         currData = this.nodes.get(name);
       }
@@ -109,6 +48,7 @@ class Schema {
         id,
         fields: fieldsArr,
         root,
+        omit,
         options
       };
   
@@ -120,61 +60,66 @@ class Schema {
           _dupNode: true
         };
       }
-  
+      // add node to our map
       this.nodes.set(name, nodeData);
-      if (root === true) {
+
+      // handle setting root
+      if (root === true && this.root) {
+        throw new Error(`Only one root allowed and root has already been defined as ${this.root}, but ${name} is also set as root`)
+      } else if (root === true) {
         this.root = name;
       }
-      const nodeName = options.rename || name;
-      this.normData[nodeName] = Schema.newNormStruct();
-    }
-  
-    _checkDefined(values) {
-      values.forEach(({ val, label }) => {
-        if (val == null) {
-          throw new Error(`${label} is not defined`);
-        }
-      });
-      return true;
+
+      // Don't add omitted node structure
+      if (!omit) {
+        // handle renaming node
+        const nodeName = options.rename || name;
+        // layout node scaffold for new node
+        this.normData[nodeName] = Schema.newNormStruct();
+      }
     }
   
     /**
-     *
-     * @param {array} data
+     * Public method to begin normalization of data
+     * @param {} data
      */
     normalize(data) {
-      this._checkDefined([{ val: this.root, label: 'root node' }]);
-  
-      let node = this.nodes.get(this.root);
-      this._normalizeNode(data, node);
-      return this.normData;
-    }
-  
-    _normalizeNode(data, { name, id, fields, options }) {
-      if (!data) {
-        return { allIds: [] };
+      if (!this.root) {
+        throw new Error('No root is defined.')
       }
   
-      /*
-      Normalize fields
-      ----------------------
-      */
-  
-      let dupData = data.map(d => {
-        const item = { ...d };
-        // more to normalize
-        fields.forEach(field => {
-          let node = this.nodes.get(field);
-  
-          // select the key associated with parent = this node
+      // Start at root node
+      let node = this.nodes.get(this.root);
+      this._normalizeNode(data, node); // recursively normalize
+      return this.normData; // return normalized data
+    }
+
+    _normalizeFields({item, fields, options, name}) {
+      // iterate through fields and normalize each
+      fields.forEach(field => {
+        let node = this.nodes.get(field);
+        
+        // if node exists
+        if (!node) {
+          !this.silent && console.warn(`Couldn't locate ${field} in ${options.rename || name}. Ensure nodes and fields match.`)
+        } else {
+          
+          // find this node
           if (node._dupNode) {
             node = node[options.rename] || node[name];
           }
   
           let slice = item[field];
-          if (options.resolve && typeof options.resolve[field] === 'function') {
-            slice = options.resolve[field](item);
+  
+          // handle options.resolve
+          if (options.resolve) {
+            if (typeof options.resolve !== 'object') {
+              throw new Error('resolve must be an object, where the fields to resolve are the keys, and the resolve functions are the respective values.')
+            } else if (typeof options.resolve[field] === 'function') {
+              slice = options.resolve[field](item);
+            }
           }
+          
   
           if (slice) {
             const isObj = !Array.isArray(slice);
@@ -189,11 +134,42 @@ class Schema {
             } else {
               item[field] = replacement;
             }
+          } else {
+            !this.silent && console.warn(`Couldn't locate ${field} in ${options.rename || name}. Ensure nodes and fields match.`)
           }
-        });
-  
-        return item;
+        }
+
       });
+    }
+  
+    /**
+     * Recursively normalizes a node based on the fields it identifies
+     * @param {*} data 
+     * @param {*} param1 
+     */
+    _normalizeNode(data, { name, id, fields, options, omit}) {
+      if (!data) {
+        return { allIds: [] };
+      }
+  
+      /*
+      Normalize fields of node before node itself
+      ----------------------
+      */
+     // If data is an array, iterate through each item and normalize the fields
+     let formattedData = []
+     if (Array.isArray(data)) {
+      formattedData = data.map(d => {
+         const item = { ...d };
+         this._normalizeFields({item, fields, options, name})
+         return item;
+       });
+     } else {
+       // data is an object, normalize the fields and convert to an array for the next step
+       this._normalizeFields({item: data, fields, options, name})
+       formattedData = [data]
+     }
+  
   
       /*
       Normalize this node
@@ -201,31 +177,39 @@ class Schema {
       */
   
       const nodeName = options.rename || name;
-      const { allIds, byId } = this._normalizeArr({
-        data: dupData,
+      const { allIds, byId } = this._formatArr({
+        data: formattedData,
         id,
         nodeName,
         ...options
       });
-      this._addNormData({ allIds, byId, nodeName });
+
+      // add normalized data to the final object
+      !omit && this._addNormData({ allIds, byId, nodeName });
       return { allIds };
     }
   
-    _normalizeArr({ data, id, additionalIds = [], transform = x => x, filter = () => true, nodeName }) {
+    // turn [data] into {byId, allIds}
+    _formatArr({ data, id, additionalIds = [], transform = x => x, filter = () => true, nodeName }) {
       let byId = {},
         allIds = [];
+
+      // iterate through each item and structure into byId,allIds format
       data.forEach(item => {
-        // don't duplicate
-        if (!this.normData[nodeName].byId[item[id]] && filter(item)) {
+        // filter item from being included
+        if (filter(item)) {
+          // make byId
           byId[item[id]] = {
-            ...transform(item),
-            id: item[id]
+            ...transform(item), // transform the object data if desired
+            id: item[id] // always include id
           };
   
-          // if no additional ids, don't make an object
+          // make allIds
+          // if no additional ids, don't make an object, just push the id
           if (additionalIds.length < 1) {
             allIds.push(item[id]);
           } else {
+            // additionalIds are present
             let idObj = { id: item[id] };
             additionalIds.forEach(key => {
               idObj[key] = item[key];
@@ -233,6 +217,7 @@ class Schema {
             allIds.push(idObj);
           }
         } else if (process.env.NODE_ENV === 'development' || (process.env.NODE_ENV === 'dev' && !filter(item))) {
+          // Item has been filtered
           !this.silent &&
             console.warn({ message: 'Data element has been filtered', element: item, fn: filter.toString() });
         }
