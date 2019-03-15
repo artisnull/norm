@@ -1,4 +1,4 @@
-import Norm, { defaultNode, defaultConfig } from '../../src'
+import Norm, { defaultNode, defaultConfig, defaultOptions } from '../../src'
 
 const mockNorm = (function() {
   return (isUnique = true) => {
@@ -42,12 +42,11 @@ describe('norm :: addNode', () => {
     it('should handle omit option', () => {
       const norm = mockNorm()
 
-      norm.addNode('test', { omit: true })
+      norm.addNode('test', undefined, { omit: true })
 
       expect(norm.nodes.set).toBeCalledWith('test', {
         ...defaultNode,
         omit: true,
-        options: {},
         name: 'test',
       })
       expect(norm.normData.test).toBeUndefined()
@@ -56,7 +55,7 @@ describe('norm :: addNode', () => {
       const norm = mockNorm()
       norm.root = 'someNode'
 
-      const eFunc = wrapError(() => norm.addNode('test', { root: true }))
+      const eFunc = wrapError(() => norm.addNode('test', undefined, { root: true }))
       expect(eFunc).toThrowError('Only one root allowed')
     })
     it('should handle shorthand call', () => {
@@ -66,7 +65,7 @@ describe('norm :: addNode', () => {
 
       expect(norm.nodes.set).toBeCalledWith('test', {
         ...defaultNode,
-        options: {},
+        ...defaultOptions,
         name: 'test',
       })
       expect(norm.normData.test).toMatchObject(Norm.newNormStruct())
@@ -79,8 +78,8 @@ describe('norm :: addNode', () => {
 
       expect(norm.nodes.set).toBeCalledWith('test', {
         ...defaultNode,
+        ...defaultOptions,
         subNodes: ['node'],
-        options: {},
         name: 'test',
       })
       expect(norm.normData.test).toMatchObject(Norm.newNormStruct())
@@ -93,8 +92,8 @@ describe('norm :: addNode', () => {
 
       expect(norm.nodes.set).toBeCalledWith('test', {
         ...defaultNode,
+        ...defaultOptions,
         subNodes: ['node'],
-        options: {},
         name: 'test',
       })
       expect(norm.normData.test).toMatchObject(Norm.newNormStruct())
@@ -109,9 +108,7 @@ describe('norm :: addNode', () => {
       expect(norm.nodes.set).toBeCalledWith('test', {
         parent: {
           ...defaultNode,
-          options: {
-            parent: 'parent',
-          },
+          parent: 'parent',
           name: 'test',
         },
         _dupNode: true,

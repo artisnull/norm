@@ -1,8 +1,36 @@
 // Author Zachariah Lambert
 
-export const defaultNode = { id: 'id', subNodes: [], root: false, omit: false }
+export const defaultNode = { id: 'id', subNodes: [],  }
+export const defaultOptions : Options = {
+  root: null,
+  omit: false,
+  resolve: undefined,
+  parent: undefined,
+  rename: undefined
+}
 export const defaultConfig = { silent: true, allowDuplicates: false }
+
+interface Node extends Options {
+  name: String
+  id: String
+  subNodes: Array<Object>
+  _dupNode?: Boolean
+}
+interface Options {
+  resolve: Function
+  parent: String
+  rename: String
+  omit: Boolean
+  root: Boolean
+}
+
 class Norm {
+  nodes: Map<String, Node>
+  root: String
+  normData: Object
+  silent: Boolean
+  allowDuplicates: Boolean
+  
   constructor({ silent = true, allowDuplicates = false } = defaultConfig) {
     this.nodes = new Map()
     this.root = null
@@ -11,7 +39,7 @@ class Norm {
     this.allowDuplicates = allowDuplicates
   }
 
-  static newNormStruct() {
+  static newNormStruct() : Object {
     return {
       byId: {},
       allIds: [],
@@ -29,8 +57,8 @@ class Norm {
    */
   addNode(
     name,
-    { id = 'id', subNodes = [], root = false, omit = false } = defaultNode,
-    options = {},
+    { id = 'id', subNodes = []} = defaultNode,
+    options : Options = defaultOptions,
   ) {
     if (!name) {
       throw new Error('Nodes must be named. First argument must be a string')
@@ -53,20 +81,18 @@ class Norm {
       currData = this.nodes.get(name)
     }
 
-    let nodeData = {
+    let nodeData: Node = {
       name,
       id,
       subNodes: subNodesArr,
-      root,
-      omit,
-      options,
+      ...options,
     }
 
     // name conflicts are avoided by specifying the parent
     if (options.parent) {
       nodeData = {
-        [options.parent]: nodeData,
-        ...currData,
+        [options.parent as string]: nodeData,
+        ...currData as Node,
         _dupNode: true,
       }
     }
@@ -74,18 +100,18 @@ class Norm {
     this.nodes.set(name, nodeData)
 
     // handle setting root
-    if (root === true && this.root) {
+    if (options.root === true && this.root) {
       throw new Error(
         `Only one root allowed and root has already been defined as ${
           this.root
         }, but ${name} is also set as root`,
       )
-    } else if (root === true) {
+    } else if (options.root === true) {
       this.root = name
     }
 
     // Don't add omitted node structure
-    if (!omit) {
+    if (!options.omit) {
       // handle renaming node
       const nodeName = options.rename || name
       // layout node scaffold for new node
@@ -109,7 +135,7 @@ class Norm {
   }
 
   _normalizeSubNodes(dataSlice, node) {
-    const {subNodes, options, name } = node
+    const {subNodes, options, name, resolve, rename } = node
     // iterate through subNodes and normalize each
     subNodes.forEach(subNodeName => {
       let subNode = this.nodes.get(subNodeName)
@@ -124,19 +150,19 @@ class Norm {
       } else {
         // find this subNode
         if (subNode._dupNode) {
-          subNode = subNode[options.rename] || subNode[name]
+          subNode = subNode[rename] || subNode[name]
         }
 
         let subSlice = dataSlice[subNodeName]
 
         // handle options.resolve
-        if (options.resolve) {
-          if (typeof options.resolve !== 'object') {
+        if (resolve) {
+          if (typeof resolve !== 'object') {
             throw new Error(
               'resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.',
             )
-          } else if (typeof options.resolve[subNodeName] === 'function') {
-            subSlice = options.resolve[subNodeName](dataSlice)
+          } else if (typeof resolve[subNodeName] === 'function') {
+            subSlice = resolve[subNodeName](dataSlice)
           }
         }
 
@@ -150,16 +176,16 @@ class Norm {
           // Replace the reference in the parent of the normalized values
           const replacement = isObj ? [subSlice[subNode.id]] : normalizedIds
 
-          if (subNode.options.rename) {
+          if (subNode.rename) {
             delete dataSlice[subNodeName]
-            dataSlice[subNode.options.rename] = replacement
+            dataSlice[subNode.rename] = replacement
           } else {
             dataSlice[subNodeName] = replacement
           }
         } else {
           !this.silent &&
             console.warn(
-              `Couldn't locate ${subNodeName} in ${options.rename ||
+              `Couldn't locate ${subNodeName} in ${rename ||
                 name}. Ensure nodes and subNodes match.`,
             )
         }
@@ -173,7 +199,7 @@ class Norm {
    * @param {*} node
    */
   _normalizeNode(data, node) {
-    const  { name, id, options, omit } = node
+    const  { name, id, rename, omit, ...rest } = node
     if (!data) {
       return { allIds: [] }
     }
@@ -201,12 +227,12 @@ class Norm {
       ----------------------
       */
 
-    const nodeName = options.rename || name
+    const nodeName = rename || name
     const { allIds, byId } = this._formatArr({
       data: formattedData,
       id,
       nodeName,
-      ...options,
+      ...rest,
     })
 
     // add normalized data to the final object

@@ -32,7 +32,7 @@ describe('norm', () => {
     });
     it('should normalize data', () => {
         const norm = new Norm()
-        norm.addNode('root', {root: true, omit: true, subNodes: 'arr1'})
+        norm.addNode('root', {subNodes: 'arr1'}, {root: true, omit: true})
         norm.addNode('arr1')
         const result = norm.normalize(testData)
         expect(result).toMatchObject({
