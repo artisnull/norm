@@ -70,33 +70,13 @@ describe('norm :: addNode', () => {
       })
       expect(norm.normData.test).toMatchObject(Norm.newNormStruct())
     })
-
-    it('should handle subNodes as a string', () => {
+    it('should not handle subNodes as an array', () => {
       const norm = mockNorm()
 
-      norm.addNode('test', { subNodes: 'node' })
+      const eFunc = wrapError(() => norm.addNode('test', ['node'] ))
 
-      expect(norm.nodes.set).toBeCalledWith('test', {
-        ...defaultNode,
-        ...defaultOptions,
-        subNodes: ['node'],
-        name: 'test',
-      })
-      expect(norm.normData.test).toMatchObject(Norm.newNormStruct())
-    })
-
-    it('should handle subNodes as an array', () => {
-      const norm = mockNorm()
-
-      norm.addNode('test', { subNodes: ['node'] })
-
-      expect(norm.nodes.set).toBeCalledWith('test', {
-        ...defaultNode,
-        ...defaultOptions,
-        subNodes: ['node'],
-        name: 'test',
-      })
-      expect(norm.normData.test).toMatchObject(Norm.newNormStruct())
+      expect(eFunc).toThrowError('SubNodes must be an object in the form {[subNodeName]: idToNormalizeBy}')
+     
     })
   })
   describe('when node is duplicate', () => {

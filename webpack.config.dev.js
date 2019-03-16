@@ -1,6 +1,6 @@
 const path = require('path')
 module.exports = {
-    entry: './src/index.js',
+    entry: './src/index.ts',
     mode: 'development',
     target: 'node',
     devtool: 'cheap-module-eval-source-map',
@@ -10,9 +10,12 @@ module.exports = {
         library: 'norm',
         libraryTarget: 'umd'
     },
+    resolve: {
+        extensions: ['.js', '.ts']
+    },
     module: {
         rules: [
-            {test: /\.js$/, use: 'babel-loader'}
+            {test: /\.(t|j)s$/, use: 'babel-loader'}
         ]
     },
 }

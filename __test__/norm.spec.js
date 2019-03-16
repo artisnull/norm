@@ -1,4 +1,5 @@
 import Norm from '../src'
+import { newNormStruct } from '../src/constants/defaults';
 
 const genObj = (count, children) => {
     const res = []
@@ -23,7 +24,7 @@ const testData = {
 describe('norm', () => {
     describe('default structure', () => {
         it('should be byId, allIds', () => {
-            const struct = Norm.newNormStruct()
+            const struct = newNormStruct()
             expect(struct).toMatchObject({
                 byId: {},
                 allIds: []
@@ -32,7 +33,7 @@ describe('norm', () => {
     });
     it('should normalize data', () => {
         const norm = new Norm()
-        norm.addNode('root', {subNodes: 'arr1'}, {root: true, omit: true})
+        norm.addNode('root', {arr1: 'id'}, {root: true, omit: true})
         norm.addNode('arr1')
         const result = norm.normalize(testData)
         expect(result).toMatchObject({

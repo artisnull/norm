@@ -20,16 +20,47 @@ const DATA = {
 }
 
 const norm = new Norm({silent: false});
-norm.addNode('root', {omit: true, root: true, fields: ['branch1', 'nest', 'orange']}, {resolve: {
-    nest: data => data.nestedBranch.nest
-}})
-norm.addNode('branch1', {id: 'id'}, {parent: 'root'})
-norm.addNode('nest', {id: 'name', fields: ['branch1']})
-norm.addNode('branch1', {id: 'id'}, {parent: 'nest', rename: 'branch2', transform: data => {
+
+norm.addNode('root', { branch1: 'id', nest: 'name', orange: 'id'}, {
+    resolve: {
+        nest: data => data.nestedBranch.nest
+    },
+    omit: true,
+    root: true,
+})
+norm.addNode('branch1', false, {parent: 'root'})
+norm.addNode('nest', {branch1: 'id'})
+norm.addNode('branch1',false, {parent: 'nest', rename: 'branch2', transform: data => {
     data.id = `TRANSFORMED-${data.id}`
 }})
 
 const result = norm.normalize(DATA);
+console.log(result)
+
+// const genObj = (count, children) => {
+//     const res = []
+//     for (let i = 1; i < count + 1; i++) {
+//         const item = {
+//             id: i,
+//             name: `Item ${i}`,
+//             ...children
+//         }
+//         res.push(item)
+//     }
+//     return res
+// }
+
+// const testData = {
+//     arr1: genObj(2),
+//     arr2: genObj(2, {
+//         nest: genObj(2)
+//     })
+// }
+
+// const norm = new Norm()
+// norm.addNode('root', {'arr1': 'id'}, {root: true, omit: true})
+// norm.addNode('arr1')
+// const result = norm.normalize(testData)
 
 /*
 {
