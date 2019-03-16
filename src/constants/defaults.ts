@@ -2,10 +2,9 @@ import {Options, NormalStructure} from '../index.d'
 
 export const defaultNode = { subNodes: {} }
 export const defaultOptions: Options = {
-  root: null,
+  root: false,
   omit: false,
   resolve: undefined,
-  parent: undefined,
   rename: undefined,
   filter: undefined,
   transform: undefined,

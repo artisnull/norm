@@ -1,55 +1,57 @@
 import Norm from '../src'
-import { newNormStruct } from '../src/constants/defaults';
-
-const genObj = (count, children) => {
-    const res = []
-    for (let i = 1; i < count + 1; i++) {
-        const item = {
-            id: i,
-            name: `Item ${i}`,
-            ...children
-        }
-        res.push(item)
-    }
-    return res
-}
-
-const testData = {
-    arr1: genObj(2),
-    arr2: genObj(2, {
-        nest: genObj(2)
-    })
-}
+import { newNormStruct } from '../src/constants/defaults'
+import sampleData from './sampleData'
 
 describe('norm', () => {
-    describe('default structure', () => {
-        it('should be byId, allIds', () => {
-            const struct = newNormStruct()
-            expect(struct).toMatchObject({
-                byId: {},
-                allIds: []
-            })
-        });
-    });
-    it('should normalize data', () => {
-        const norm = new Norm()
-        norm.addNode('root', {arr1: 'id'}, {root: true, omit: true})
-        norm.addNode('arr1')
-        const result = norm.normalize(testData)
-        expect(result).toMatchObject({
-            arr1: {
-                byId: {
-                    1: {
-                        id: 1,
-                        name: `Item 1`
-                    },
-                    2: {
-                        id: 2,
-                        name: `Item 2`
-                    }
-                },
-                allIds: [1, 2]
-            }
-        })
-    });
-});
+  describe('default structure', () => {
+    it('should be byId, allIds', () => {
+      const struct = newNormStruct()
+      expect(struct).toMatchObject({
+        byId: {},
+        allIds: [],
+      })
+    })
+  })
+  it('should normalize data', () => {
+    const norm = new Norm()
+    norm.addNode('root', { posts: 'id' }, { root: true, omit: true })
+    const result = norm.normalize(sampleData())
+    expect(result).toMatchObject({
+      posts: {
+        allIds: ['0000', '0001', '0002'],
+        byId: {
+          '0000': {
+            description: 'A post about nothing',
+            id: '0000',
+            thumbnail: { id: '0003', url: 'pathToImage' },
+            user: {
+              name: 'Albert',
+              thumbnail: { id: '0000', url: 'pathToImage' },
+              type: 'normal',
+            },
+          },
+          '0001': {
+            description: 'A post about something',
+            id: '0001',
+            thumbnail: { id: '0004', url: 'pathToImage' },
+            user: {
+              name: 'James',
+              thumbnail: { id: '0001', url: 'pathToImage' },
+              type: 'normal',
+            },
+          },
+          '0002': {
+            description: 'A post about life',
+            id: '0002',
+            thumbnail: { id: '0004', url: 'pathToImage' },
+            user: {
+              name: 'Samantha',
+              thumbnail: { id: '0002', url: 'pathToImage' },
+              type: 'normal',
+            },
+          },
+        },
+      },
+    })
+  })
+})

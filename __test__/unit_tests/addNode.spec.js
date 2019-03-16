@@ -1,4 +1,4 @@
-import Norm, { defaultNode, defaultConfig, defaultOptions } from '../../src'
+import { addNode, defaultNode, defaultConfig, defaultOptions, newNormStruct } from '../../src'
 
 const mockNorm = (function() {
   return (isUnique = true) => {
@@ -12,19 +12,19 @@ const mockNorm = (function() {
         root: null,
         normData: {},
         ...defaultConfig,
-        addNode: new Norm().addNode,
+        addNode,
       }
     } else {
       return {
         nodes: {
           has: jest.fn(name => true),
-          get: jest.fn(parent => ({ parentInfo: true })),
+          get: jest.fn(parent => ({ oldInfo: true })),
           set: jest.fn(),
         },
         root: null,
         normData: {},
         silent: true,
-        addNode: new Norm().addNode,
+        addNode,
       }
     }
   }
@@ -68,7 +68,7 @@ describe('norm :: addNode', () => {
         ...defaultOptions,
         name: 'test',
       })
-      expect(norm.normData.test).toMatchObject(Norm.newNormStruct())
+      expect(norm.normData.test).toMatchObject(newNormStruct())
     })
     it('should not handle subNodes as an array', () => {
       const norm = mockNorm()
@@ -80,24 +80,27 @@ describe('norm :: addNode', () => {
     })
   })
   describe('when node is duplicate', () => {
-    it('should use parent info to resolve name', () => {
+    it('should use rename info to resolve name', () => {
       const norm = mockNorm(false)
 
-      norm.addNode('test', undefined, { parent: 'parent' })
+      norm.addNode('test', undefined, { rename: 'renamed' })
 
       expect(norm.nodes.set).toBeCalledWith('test', {
-        parent: {
+        renamed: {
           ...defaultNode,
-          parent: 'parent',
+          rename: 'renamed',
           name: 'test',
         },
+        _rename: {
+          test: 'renamed'
+        },
         _dupNode: true,
-        parentInfo: true,
+        oldInfo: true,
       })
-      expect(norm.normData.test).toMatchObject(Norm.newNormStruct())
+      expect(norm.normData.renamed).toMatchObject(newNormStruct())
     })
     describe('when config.allowDuplicates is true', () => {
-      it('should throw error when no options.parent is defined', () => {
+      it('should throw error when no options.rename is defined', () => {
         const norm = mockNorm(false)
         norm.allowDuplicates = true
 
@@ -106,7 +109,7 @@ describe('norm :: addNode', () => {
       })
     })
     describe('when config.allowDuplicates is false', () => {
-      it('should throw error when no options.parent is defined', () => {
+      it('should throw error when no options.rename is defined', () => {
         const norm = mockNorm(false)
 
         const eFunc = wrapError(() => norm.addNode('test'))

@@ -2,13 +2,13 @@ export interface Node extends Options {
   name: string
   subNodes: SubNodesDefinition
   _dupNode?: boolean
+  _rename?: object
 }
 export interface Resolve {
   [name: string]: Function
 }
 export interface Options {
   resolve: Resolve
-  parent: string
   rename: string
   omit: boolean
   root: boolean

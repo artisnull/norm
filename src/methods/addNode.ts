@@ -17,31 +17,31 @@ export default function addNode(
     )
   }
 
-  let currData = {}
-
   // check if the node name has been defined already, and if it has, if the parent option is defined
-  if (this.nodes.has(name) && !options.parent && !this.allowDuplicates) {
+  if (this.nodes.has(name) && !options.rename && !this.allowDuplicates) {
     throw new Error(
-      'Duplicate node, but no parent specified. Use options.parent to resolve name conflicts',
+      'Duplicate node, but no rename specified. Use options.rename to avoid name conflicts',
     )
-  } else if (this.nodes.has(name)) {
-    currData = this.nodes.get(name)
   }
 
-  let nodeData: Node = {
+  let nodeData: object = {
     name,
     subNodes,
     ...options,
   }
 
   // name conflicts are avoided by specifying the parent
-  if (options.parent) {
+  if (options.rename) {
     nodeData = {
-      [options.parent as string]: nodeData,
-      ...(currData as Node),
+      [options.rename]: nodeData,
+      ...this.nodes.get(name),
       _dupNode: true,
+      _rename: {
+        [name]: options.rename
+      }
     }
   }
+  
   // add node to our map
   this.nodes.set(name, nodeData)
 
