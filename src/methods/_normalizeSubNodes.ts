@@ -1,30 +1,25 @@
 import { Node } from '../index.d'
-import { defaultNode, defaultOptions } from '../constants/defaults'
 
 export default function _normalizeSubNodes(dataSlice: object, node: Node) : void {
   const {
-    subNodes,
-    name,
-    resolve,
-    rename,
-    additionalIds,
-    transform,
-    filter,
+    name: parentName,
+    subNodes = {},
+    resolve
   } = node
+
   // iterate through subNodes and normalize each
-  Object.entries(subNodes).forEach(([subNodeName, subNodeId]) => {
-    let subNode: Node
-    if (!this.nodes.has(subNodeName)) {
-      this.addNode(subNodeName, defaultNode, defaultOptions)
-    }
-    subNode = this.nodes.get(subNodeName)
+  Object.getOwnPropertySymbols(subNodes).forEach(subNodeSym => {
+    const subNodeId = subNodes[subNodeSym]
+    const subNode: Node = this.nodes.get(subNodeSym)
+    const {
+      name,
+      additionalIds,
+      transform,
+      filter,
+      omit
+    } = subNode
 
-    // find this subNode
-    if (subNode._dupNode) {
-      subNode = subNode[subNode._rename[name]]
-    }
-
-    let subSlice = dataSlice[subNodeName]
+    let subSlice = dataSlice[name]
 
     // handle options.resolve
     if (resolve) {
@@ -32,8 +27,8 @@ export default function _normalizeSubNodes(dataSlice: object, node: Node) : void
         throw new Error(
           'resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.',
         )
-      } else if (typeof resolve[subNodeName] === 'function') {
-        subSlice = resolve[subNodeName](dataSlice)
+      } else if (typeof resolve[name] === 'function') {
+        subSlice = resolve[name](dataSlice)
       } else {
         throw new Error(
           'resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.',
@@ -56,17 +51,12 @@ export default function _normalizeSubNodes(dataSlice: object, node: Node) : void
       // Replace the reference in the parent of the normalized values
       const replacement = isObj ? [subSlice[subNodeId]] : formattedData.allIds
 
-      if (subNode.rename) {
-        delete dataSlice[subNodeName]
-        dataSlice[subNode.rename] = replacement
-      } else {
-        dataSlice[subNodeName] = replacement
-      }
+      dataSlice[name] = replacement
 
-      !subNode.omit &&
+      !omit &&
         this._addNormData({
           ...formattedData,
-          nodeName: subNode.rename || subNode.name,
+          nodeName: name,
         })
 
       // normalize the subNode
@@ -74,8 +64,7 @@ export default function _normalizeSubNodes(dataSlice: object, node: Node) : void
     } else {
       !this.silent &&
         console.warn(
-          `Couldn't locate ${subNodeName} in ${rename ||
-            name}. Ensure nodes and subNodes match.`,
+          `Couldn't locate ${name} in ${parentName}. Ensure nodes and subNodes match.`,
         )
     }
   })

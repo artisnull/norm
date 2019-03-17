@@ -3,10 +3,6 @@ import { _addNormData } from '../../src'
 const mockNorm = (function() {
     return () => ({
       normData: {
-          emptyNode: {
-              byId: {},
-              allIds: []
-          },
           fullNode: {
               byId: {
                   0: {

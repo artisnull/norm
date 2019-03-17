@@ -2,7 +2,7 @@
 import { Node } from './index.d'
 import { defaultConfig } from './constants/defaults'
 import {
-  addNode,
+  addRoot,
   normalize,
   _normalizeSubNodes,
   _addNormData,
@@ -12,7 +12,7 @@ import {
 
 class Norm {
   nodes: Map<string, Node>
-  root: string
+  root: Node
   normData: object
   silent: boolean
   allowDuplicates: boolean
@@ -25,7 +25,7 @@ class Norm {
     this.allowDuplicates = allowDuplicates
   }
 
-  addNode = addNode
+  addRoot = addRoot
   normalize = normalize
   _normalizeSubNodes = _normalizeSubNodes
   _normalizeNode = _normalizeNode
