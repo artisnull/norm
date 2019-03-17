@@ -34,6 +34,11 @@ const wrapError = cb => cb
 
 describe('norm :: addNode', () => {
   describe('when node is unique', () => {
+    it('should set node as root when options.root is passed', () => {
+      const norm = mockNorm()
+      norm.addNode('test', undefined, { root: true })
+      expect(norm.root).toBe('test')
+    });
     it('should throw error if no name is defined', () => {
       const norm = mockNorm()
       const eFunc = wrapError(norm.addNode)

@@ -2,7 +2,7 @@
  * Public method to begin normalization of data
  * @param {} data
  */
-export default function normalize(data: object): object {
+export default function normalize(data: (object | Array<object>)): object {
   if (!this.root) {
     throw new Error('No root is defined.')
   }

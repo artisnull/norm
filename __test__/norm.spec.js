@@ -3,15 +3,6 @@ import { newNormStruct } from '../src/constants/defaults'
 import sampleData from './sampleData'
 
 describe('norm', () => {
-  describe('default structure', () => {
-    it('should be byId, allIds', () => {
-      const struct = newNormStruct()
-      expect(struct).toMatchObject({
-        byId: {},
-        allIds: [],
-      })
-    })
-  })
   it('should normalize data', () => {
     const norm = new Norm()
     norm.addNode('root', { posts: 'id' }, { root: true, omit: true })

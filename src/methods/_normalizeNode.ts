@@ -2,20 +2,14 @@ import { Node } from '../index.d'
 /**
  * Recursively normalizes a node based on the subNodes it identifies
  */
-export default function _normalizeNode(data: object, node: Node) {
-  const { name, rename, omit, ...rest } = node
+export default function _normalizeNode(data: (object | Array<object>), node: Node) : void {
   if (!data) {
-    return { allIds: [] }
+    return
   }
 
-  /*
-      Normalize subNodes of node before node itself
-      ----------------------
-      */
   // If data is an array, iterate through each item and normalize the subNodes
   if (Array.isArray(data)) {
-    data.forEach(d => {
-      const dataSlice = { ...d }
+    data.forEach(dataSlice => {
       this._normalizeSubNodes(dataSlice, node)
     })
   } else {

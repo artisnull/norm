@@ -33,17 +33,14 @@ export default function _formatArr({
         })
         allIds.push(idObj)
       }
-    } else if (
-      process.env.NODE_ENV === 'development' ||
-      (process.env.NODE_ENV === 'dev' && !filter(item))
-    ) {
+    } else if (!this.silent) {
       // Item has been filtered
-      !this.silent &&
-        console.warn({
-          message: 'Data element has been filtered',
-          element: item,
-          fn: filter.toString(),
-        })
+
+      console.warn({
+        message: 'Data element has been filtered',
+        element: item,
+        fn: filter.toString(),
+      })
     }
   })
   return { byId, allIds }
