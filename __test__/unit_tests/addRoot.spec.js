@@ -5,14 +5,18 @@ import { addRoot, defaultNode, defaultConfig, defaultOptions, newNormStruct } fr
 const mockNorm = (function() {
   return () => ({
     silent: true,
-    nodes: {},
-    addRoot
+    nodes: {
+      set: jest.fn()
+    },
+    addRoot,
+    root: undefined
   })
 })()
 const mockNode = function(fn) {
   return (name, norm) => ({
     define: fn,
-    sym: 'sym'
+    sym: 'sym',
+    toObject: jest.fn()
   })
 }
 
@@ -22,14 +26,20 @@ describe('norm :: addRoot', () => {
   it('should set node as root', () => {
     const nodeName = 'test'
     const norm = mockNorm()
-    const define = jest.fn()
+    const define = jest.fn(() => ({[nodeName]: mockNode(define)(nodeName)}))
     Node.mockImplementation(() => mockNode(define)(nodeName))
     norm.addRoot(nodeName, undefined)
     expect(norm.root).toBe('sym')
   });
+  it('should throw error if root is defined twice', () => {
+    const norm = mockNorm()
+    norm.root = 'someId'
+    const eFunc = wrapError(() => norm.addRoot('newRoot'))
+    expect(eFunc).toThrowError(`Root has already been defined, ${'newRoot'} is attempting to redefine`)
+  })
   it('should throw error if no name is defined', () => {
     const norm = mockNorm()
-    const eFunc = wrapError(norm.addRoot)
+    const eFunc = wrapError(() => norm.addRoot())
     expect(eFunc).toThrowError('Nodes must be named.')
   })
   it('should not handle subNodes as an array', () => {

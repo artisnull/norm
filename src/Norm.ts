@@ -13,6 +13,7 @@ import {
 class Norm {
   nodes: Map<string, Node>
   root: Node
+  firstNode: Node
   normData: object
   silent: boolean
   allowDuplicates: boolean

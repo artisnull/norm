@@ -27,9 +27,9 @@ export default function _normalizeSubNodes(dataSlice: object, node: Node) : void
         throw new Error(
           'resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.',
         )
-      } else if (typeof resolve[name] === 'function') {
+      } else if (resolve[name] && typeof resolve[name] === 'function') {
         subSlice = resolve[name](dataSlice)
-      } else {
+      } else if (resolve[name] && typeof resolve[name] !== 'function'){
         throw new Error(
           'resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.',
         )

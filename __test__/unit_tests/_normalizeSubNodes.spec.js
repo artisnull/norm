@@ -80,6 +80,30 @@ describe('norm :: _normalizeSubNodes', () => {
 
       expect(res).toThrowError('resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.')
     });
+    it('should not throw error when resolve[nodeName] is undefined', () => {
+      const testData = sampleData().meta
+      const targetDataSlice = testData.posts.allUsers
+      const norm = mockNorm()
+
+      const parent = {
+        name: 'parent',
+        subNodes: {[Symbol('user')]: 'name'},
+        resolve: {
+          user: undefined
+        }
+      }
+      const newNode = {
+        name: 'user',
+        ...defaultNode,
+        ...defaultOptions,
+      }
+      norm.nodes.has = jest.fn(() => true)
+      norm.nodes.get = jest.fn(() => newNode)
+
+      const res = wrapError(() =>norm.normalizeSubNodes(testData, parent))
+
+      expect(res).not.toThrowError('resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.')
+    });
     it('should throw error when resolve is not an object', () => {
       const testData = sampleData().meta
       const targetDataSlice = testData.posts.allUsers

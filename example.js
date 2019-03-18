@@ -1,41 +1,47 @@
 const Norm = require('./dist').default
 
-const DATA = {
-    branch1: [
-        {id: 'b11'},
-        {id: 'b12'},
+const DATA = () => ({
+  branch1: [{ id: 'b11' }, { id: 'b12' }],
+  nestedBranch: {
+    nest: [
+      {
+        name: 'n1',
+        branch1: [{ id: 'b21' }, { id: 'b22' }],
+      },
+      { name: 'n2' },
     ],
-    nestedBranch: {
-        nest: [
-            {
-                name: 'n1',
-                branch1: [
-                    {id: 'b21'},
-                    {id: 'b22'},
-                ]
-            },
-            {name: 'n2'},
-        ]
-    }
-}
+  },
+})
 
-const norm = new Norm({silent: false});
+const norm = new Norm({ silent: false })
 
-norm.addNode('root', { branch1: 'id', nest: 'name', orange: 'id'}, {
+const { nest } = norm.addRoot(
+  'root',
+  { branch1: 'id', nest: 'name', orange: 'id' },
+  {
     resolve: {
-        nest: data => data.nestedBranch.nest
+      nest: data => data.nestedBranch.nest,
     },
     omit: true,
-    root: true,
-})
-norm.addNode('branch1', false, {parent: 'root'})
-norm.addNode('nest', {branch1: 'id'})
-norm.addNode('branch1',false, {parent: 'nest', rename: 'branch2', transform: data => {
+  },
+)
+const { branch2 } = nest.define(
+  { branch2: 'id' },
+  { resolve: { branch2: slice => slice.branch1 } },
+)
+branch2.define(undefined, {
+  transform: data => {
     data.id = `TRANSFORMED-${data.id}`
-}})
+  },
+})
 
-const result = norm.normalize(DATA);
+const result = norm.normalize(DATA())
 console.log(result)
+
+const norm2 = new Norm()
+norm2.addRoot('branch1')
+const res2 = norm2.normalize(DATA().branch1)
+console.log(res2)
 
 // const genObj = (count, children) => {
 //     const res = []

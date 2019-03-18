@@ -4,12 +4,14 @@ import Node from '../Node';
 
 // returns {subNode: Node} for each subnode defined
 
-export default function addNode(
+export default function addRoot(
   name: string,
   subNodes: SubNodesDefinition = {},
   options: Options = defaultOptions,
 ): object {
-  if (!name) {
+  if (this.root) {
+    throw new Error(`Root has already been defined, ${name} is attempting to redefine`)
+  } else if (!name) {
     throw new Error('Nodes must be named. First argument must be a string')
   } else if (
     subNodes &&
@@ -19,7 +21,10 @@ export default function addNode(
       'SubNodes must be an object in the form {[subNodeName]: idToNormalizeBy}',
     )
   }
-  const rootNode = new Node(name, this)
+  const rootNode = new Node('root', this)
   this.root = rootNode.sym
-  return rootNode.define(subNodes, options)
+  this.nodes.set(this.root, rootNode.toObject())
+  const {[name]: firstNode} = rootNode.define({[name]: 'id'}, {omit: true})
+  this.firstNode = firstNode.sym
+  return firstNode.define(subNodes, options)
 }
