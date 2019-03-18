@@ -45,6 +45,42 @@ describe('norm', () => {
       },
     })
   })
+  it('should handle simple nested data', () => {
+    const data = {
+      posts: [
+        {
+          id: '0000',
+          description: 'A post about nothing',
+          thumbnail: {
+            url: 'pathToImage',
+            id: '0003',
+          },
+        },
+      ],
+    }
+    const norm = new Norm()
+    norm.addRoot('posts', { pic: 'id' }, {resolve: {pic: slice => 'slice.thumbnail'}})
+
+    const result = norm.normalize(data.posts)
+    expect(result).toMatchObject({
+      posts: {
+        byId: {
+          '0000': {
+            id: '0000',
+            description: 'A post about nothing',
+            pic: ['0003'],
+          },
+        },
+        allIds: ['0000'],
+      },
+      pic: {
+        byId: {
+          '0003': { url: 'pathToImage', id: '0003' },
+        },
+        allIds: ['0003'],
+      },
+    })
+  })
   it('should handle every option', () => {
     const norm = new Norm()
     const { renamedPosts } = norm.addRoot(
@@ -52,7 +88,7 @@ describe('norm', () => {
       { renamedPosts: 'id' },
       {
         resolve: {
-          renamedPosts: slice => slice.posts,
+          renamedPosts: slice => 'slice.posts',
         },
         omit: true,
       },
@@ -62,7 +98,7 @@ describe('norm', () => {
       { thumbnail: 'id' },
       {
         resolve: {
-          thumbnail: slice => slice.user.thumbnail,
+          thumbnail: slice => 'slice.user.thumbnail',
         },
         filter: slice => slice.id === '0002',
         additionalIds: ['description'],
@@ -73,7 +109,7 @@ describe('norm', () => {
       {},
       {
         transform: slice => {
-          delete slice.thumbnail
+          // delete slice.url
           return slice
         },
       },
@@ -88,7 +124,7 @@ describe('norm', () => {
             id: '0002',
             user: {
               name: 'Samantha',
-              thumbnail: { id: '0002', url: 'pathToImage' },
+              thumbnail: ['0002'],
               type: 'normal',
             },
           },
@@ -96,9 +132,9 @@ describe('norm', () => {
       },
       thumbnail: {
         byId: {
-          '0000': { id: '0000', url: 'pathToImage' },
-          '0001': { id: '0001', url: 'pathToImage' },
-          '0002': { id: '0002', url: 'pathToImage' },
+          '0000': { id: '0000',  },
+          '0001': { id: '0001',  },
+          '0002': { id: '0002',  },
         },
         allIds: ['0000', '0001', '0002'],
       },

@@ -32,7 +32,7 @@ describe('norm :: _normalizeSubNodes', () => {
         name: 'parent',
         subNodes: {[Symbol('user')]: 'name'},
         resolve: {
-          user: slice => slice.posts.allUsers
+          user: slice => 'slice.posts.allUsers'
         }
       }
       const newNode = {
@@ -54,7 +54,8 @@ describe('norm :: _normalizeSubNodes', () => {
         byId: {},
         allIds: ['allIds'],
       })
-      expect(testData.user).toEqual(['allIds'])
+      // shouldn't mutate
+      expect(testData.user).toEqual(sampleData().meta.user)
     })
     it('should throw error when resolve[nodeName] is not a function', () => {
       const testData = sampleData().meta
@@ -78,7 +79,7 @@ describe('norm :: _normalizeSubNodes', () => {
 
       const res = wrapError(() =>norm.normalizeSubNodes(testData, parent))
 
-      expect(res).toThrowError('resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.')
+      expect(res).toThrowError('resolve must be an object')
     });
     it('should not throw error when resolve[nodeName] is undefined', () => {
       const testData = sampleData().meta
@@ -102,7 +103,7 @@ describe('norm :: _normalizeSubNodes', () => {
 
       const res = wrapError(() =>norm.normalizeSubNodes(testData, parent))
 
-      expect(res).not.toThrowError('resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.')
+      expect(res).not.toThrowError('resolve must be an object')
     });
     it('should throw error when resolve is not an object', () => {
       const testData = sampleData().meta
@@ -124,7 +125,7 @@ describe('norm :: _normalizeSubNodes', () => {
 
       const res = wrapError(() =>norm.normalizeSubNodes(testData, parent))
 
-      expect(res).toThrowError('resolve must be an object, where the subNodes to resolve are the keys, and the resolve functions are the respective values.')
+      expect(res).toThrowError('resolve must be an object')
     });
   })
   describe('when a subNode cannot be found in the dataSlice', () => {
