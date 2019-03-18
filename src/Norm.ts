@@ -18,12 +18,11 @@ class Norm {
   silent: boolean
   allowDuplicates: boolean
 
-  constructor({ silent = true, allowDuplicates = false } = defaultConfig) {
+  constructor({ silent = true} = defaultConfig) {
     this.nodes = new Map()
     this.root = null
     this.normData = {}
     this.silent = silent
-    this.allowDuplicates = allowDuplicates
   }
 
   addRoot = addRoot

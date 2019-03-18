@@ -8,7 +8,7 @@ export const defaultOptions: Options = {
   transform: undefined,
   additionalIds: undefined,
 }
-export const defaultConfig = { silent: true, allowDuplicates: false }
+export const defaultConfig = { silent: true }
 
 export const newNormStruct = () : NormalStructure => {
     return {

@@ -66,28 +66,4 @@ describe('node :: define', () => {
     expect(eFunc).toThrowError('SubNodes must be an object in the form {[subNodeName]: idToNormalizeBy}')
    
   })
-  describe('when subNode is duplicate', () => {
-    describe('when config.allowDuplicates is true', () => {
-      it('should not throw error', () => {
-        const node = mockNode()
-        node.norm.nodes.has = jest.fn(name => true)
-        node.norm.allowDuplicates = true
-        Node.mockImplementation(() => mockNode(nodeName))
-
-        const eFunc = wrapError(() => node.define({test: {}}))
-        expect(eFunc).not.toThrowError('Duplicate node')
-      })
-    })
-    describe('when config.allowDuplicates is false', () => {
-      it('should throw error', () => {
-        const node = mockNode()
-        node.norm.nodes.has = jest.fn(name => true)
-        node.norm.allowDuplicates = false
-        Node.mockImplementation(() => mockNode(nodeName))
-
-        const eFunc = wrapError(() => node.define({test: {}}))
-        expect(eFunc).toThrowError('Duplicate node')
-      })
-    })
-  })
 })

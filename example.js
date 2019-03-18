@@ -1,112 +1,152 @@
 const Norm = require('./dist').default
 
-const DATA = () => ({
-  branch1: [{ id: 'b11' }, { id: 'b12' }],
-  nestedBranch: {
-    nest: [
-      {
-        name: 'n1',
-        branch1: [{ id: 'b21' }, { id: 'b22' }],
+const sampleData = () => ({
+  posts: [
+    {
+      id: '0000',
+      description: 'A post about nothing',
+      thumbnail: {
+        url: 'pathToImage',
+        id: '0003',
       },
-      { name: 'n2' },
-    ],
-  },
-})
-
-const norm = new Norm({ silent: false })
-
-const { nest } = norm.addRoot(
-  'root',
-  { branch1: 'id', nest: 'name', orange: 'id' },
-  {
-    resolve: {
-      nest: data => data.nestedBranch.nest,
+      user: {
+        name: 'Albert',
+        type: 'normal',
+        thumbnail: {
+          url: 'pathToImage',
+          id: '0000',
+        },
+      },
     },
-    omit: true,
-  },
-)
-const { branch2 } = nest.define(
-  { branch2: 'id' },
-  { resolve: { branch2: slice => slice.branch1 } },
-)
-branch2.define(undefined, {
-  transform: data => {
-    data.id = `TRANSFORMED-${data.id}`
+    {
+      id: '0001',
+      description: 'A post about something',
+      thumbnail: {
+        url: 'pathToImage',
+        id: '0004',
+      },
+      user: {
+        name: 'James',
+        type: 'normal',
+        thumbnail: {
+          url: 'pathToImage',
+          id: '0001',
+        },
+      },
+    },
+    {
+      id: '0002',
+      description: 'A post about life',
+      thumbnail: {
+        url: 'pathToImage',
+        id: '0005',
+      },
+      user: {
+        name: 'Samantha',
+        type: 'normal',
+        thumbnail: {
+          url: 'pathToImage',
+          id: '0002',
+        },
+      },
+    },
+  ],
+  meta: {
+    posts: {
+      allUsers: [
+        {
+          name: 'Albert',
+          type: 'normal',
+          thumbnail: {
+            url: 'pathToImage',
+            id: '0000',
+          },
+        },
+        {
+          name: 'James',
+          type: 'normal',
+          thumbnail: {
+            url: 'pathToImage',
+            id: '0001',
+          },
+        },
+        {
+          name: 'Samantha',
+          type: 'normal',
+          thumbnail: {
+            url: 'pathToImage',
+            id: '0002',
+          },
+        },
+      ],
+    },
   },
 })
 
-const result = norm.normalize(DATA())
-console.log(result)
-
-const norm2 = new Norm()
-norm2.addRoot('branch1')
-const res2 = norm2.normalize(DATA().branch1)
-console.log(res2)
-
-// const genObj = (count, children) => {
-//     const res = []
-//     for (let i = 1; i < count + 1; i++) {
-//         const item = {
-//             id: i,
-//             name: `Item ${i}`,
-//             ...children
-//         }
-//         res.push(item)
-//     }
-//     return res
-// }
-
-// const testData = {
-//     arr1: genObj(2),
-//     arr2: genObj(2, {
-//         nest: genObj(2)
-//     })
-// }
-
-// const norm = new Norm()
-// norm.addNode('root', {'arr1': 'id'}, {root: true, omit: true})
-// norm.addNode('arr1')
-// const result = norm.normalize(testData)
-
+const norm = new Norm()
+const { posts } = norm.addRoot('root', { posts: 'id' }, { omit: true })
+const { user } = posts.define({ thumbnail: 'id', user: 'name' })
+user.define({ thumbnail: 'id' })
+const result = norm.normalize(sampleData())
+console.log(JSON.stringify(result))
 /*
-{
-    "branch1": {
-        "byId": {
-            "b11": {
-                "id": "b11"
-            },
-            "b12": {
-                "id": "b12"
-            }
-        },
-        "allIds": ["b11", "b12"]
+result = {
+  posts: {
+    byId: {
+      '0000': {
+        id: '0000',
+        description: 'A post about nothing',
+        thumbnail: { url: 'pathToImage', id: '0003' },
+        user: { name: 'Albert', type: 'normal', thumbnail: ['0000'] },
+      },
+      '0001': {
+        id: '0001',
+        description: 'A post about something',
+        thumbnail: { url: 'pathToImage', id: '0004' },
+        user: { name: 'James', type: 'normal', thumbnail: ['0001'] },
+      },
+      '0002': {
+        id: '0002',
+        description: 'A post about life',
+        thumbnail: { url: 'pathToImage', id: '0005' },
+        user: { name: 'Samantha', type: 'normal', thumbnail: ['0002'] },
+      },
     },
-    "nest": {
-        "byId": {
-            "n1": {
-                "name": "n1",
-                "branch2": [
-                    "TRANSFORMED-b21",
-                    "TRANSFORMED-b22"
-                ],
-                "id": "n1"
-            },
-            "n2": {
-                "name": "n2",
-                "id": "n2"
-            }
-        },
-        "allIds": ["n1", "n2"]
+    allIds: ['0000', '0001', '0002'],
+  },
+  thumbnail: {
+    byId: {
+      '0003': { url: 'pathToImage', id: '0003' },
+      '0000': { url: 'pathToImage', id: '0000' },
+      '0004': { url: 'pathToImage', id: '0004' },
+      '0001': { url: 'pathToImage', id: '0001' },
+      '0005': { url: 'pathToImage', id: '0005' },
+      '0002': { url: 'pathToImage', id: '0002' },
     },
-    "branch2": {
-        "byId": {
-            "b21": {
-                "id": "TRANSFORMED-b21"
-            },
-            "b22": {
-                "id": "TRANSFORMED-b22"
-            }
-        },
-        "allIds": ["TRANSFORMED-b21", "TRANSFORMED-b22"]
-    }
-}*/
+    allIds: ['0003', '0000', '0004', '0001', '0005', '0002'],
+  },
+  user: {
+    byId: {
+      Albert: {
+        name: 'Albert',
+        type: 'normal',
+        thumbnail: { url: 'pathToImage', id: '0000' },
+        id: 'Albert',
+      },
+      James: {
+        name: 'James',
+        type: 'normal',
+        thumbnail: { url: 'pathToImage', id: '0001' },
+        id: 'James',
+      },
+      Samantha: {
+        name: 'Samantha',
+        type: 'normal',
+        thumbnail: { url: 'pathToImage', id: '0002' },
+        id: 'Samantha',
+      },
+    },
+    allIds: ['Albert', 'James', 'Samantha'],
+  },
+}
+*/
