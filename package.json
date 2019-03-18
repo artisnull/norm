@@ -13,6 +13,7 @@
     "babel-jest": "^24.5.0",
     "babel-loader": "^8.0.5",
     "babel-plugin-transform-class-properties": "^6.24.1",
+    "coveralls": "^3.0.3",
     "jest": "^24.5.0",
     "prettier": "^1.16.4",
     "typescript": "^3.3.3333",
@@ -22,6 +23,8 @@
   "scripts": {
     "dev": "nodemon ./example.js & webpack -w --config ./webpack.config.dev.js",
     "build": "webpack --config ./webpack.config.js",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "update_coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
   }
 }
