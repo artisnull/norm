@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/artisnull/norm/badge.svg)](https://coveralls.io/github/artisnull/norm)
+[![Coverage Status](https://coveralls.io/repos/github/artisnull/norm/badge.svg?branch=1.2_ts)](https://coveralls.io/github/artisnull/norm?branch=1.2_ts)
 # ReadMe is WIP
 Takes an array of objects with possible nested arrays of data, and returns a normalized and flattened
 representation based on the nodes defined.
