@@ -20,17 +20,11 @@ if (
   let subNodeNodes = {}, subNodes = {...namedSubNodes}
   // check subNodes for duplicates
   Object.entries(subNodes).forEach(([subNodeName, subNodeId]) => {
-    if (!this.norm.allowDuplicates && this.norm.nodes.has(subNodeName)) {
-      throw new Error(
-        'Duplicate node, but no rename specified. Use options.resolve to change node names, or set allowDuplicates to true',
-      )
-    } else {
-      const newNode = new Node(subNodeName, this.norm)
-      this.norm.nodes.set(newNode.sym, newNode.toObject())
-      subNodes[newNode.sym] = subNodeId
-      delete(subNodes[subNodeName])
-      subNodeNodes[subNodeName] = newNode
-    }
+    const newNode = new Node(subNodeName, this.norm)
+    this.norm.nodes.set(newNode.sym, newNode.toObject())
+    subNodes[newNode.sym] = subNodeId
+    delete(subNodes[subNodeName])
+    subNodeNodes[subNodeName] = newNode
   })
   
   // add node to our map

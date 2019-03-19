@@ -16,7 +16,6 @@ class Norm {
   firstNode: Node
   normData: object
   silent: boolean
-  allowDuplicates: boolean
 
   constructor({ silent = true} = defaultConfig) {
     this.nodes = new Map()

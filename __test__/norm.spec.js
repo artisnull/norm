@@ -109,12 +109,14 @@ describe('norm', () => {
       {},
       {
         transform: slice => {
-          // delete slice.url
-          return slice
+          const s = {...slice}
+          delete s.url
+          return s
         },
       },
     )
     const result = norm.normalize(sampleData())
+
     expect(result).toMatchObject({
       renamedPosts: {
         allIds: [{ id: '0002', description: 'A post about life' }],
@@ -122,6 +124,10 @@ describe('norm', () => {
           '0002': {
             description: 'A post about life',
             id: '0002',
+            thumbnail: {
+              url: 'pathToImage',
+              id: '0004',
+            },
             user: {
               name: 'Samantha',
               thumbnail: ['0002'],
@@ -132,9 +138,9 @@ describe('norm', () => {
       },
       thumbnail: {
         byId: {
-          '0000': { id: '0000',  },
-          '0001': { id: '0001',  },
-          '0002': { id: '0002',  },
+          '0000': { id: '0000' },
+          '0001': { id: '0001' },
+          '0002': { id: '0002' },
         },
         allIds: ['0000', '0001', '0002'],
       },
