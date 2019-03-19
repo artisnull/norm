@@ -1,6 +1,6 @@
 const path = require('path')
 module.exports = {
-    entry: './src/index.js',
+    entry: './src/index.ts',
     mode: 'production',
     target: 'node',
     output: {
@@ -9,9 +9,12 @@ module.exports = {
         library: 'norm',
         libraryTarget: 'umd'
     },
+    resolve: {
+        extensions: ['.js', '.ts']
+    },
     module: {
         rules: [
-            {test: /\.js$/, use: 'babel-loader'}
+            {test: /\.(t|j)s$/, use: 'babel-loader'}
         ]
     },
 }

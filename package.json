@@ -1,7 +1,7 @@
 {
   "name": "@artisnull/norm",
-  "version": "1.0.0",
-  "description": "Normalize nested js objects",
+  "version": "2.0.0",
+  "description": "Turn your messy data into normalized bliss, with lots of customization along the way",
   "main": "dist/index.js",
   "author": "artisnull",
   "license": "MIT",

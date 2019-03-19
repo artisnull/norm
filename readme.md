@@ -2,7 +2,7 @@
 
 # NORM
 
-Turn your messy data into organized bliss, with lots of customization along the way
+Turn your messy data into normalized bliss, with lots of customization along the way
 
 Turns this
 
