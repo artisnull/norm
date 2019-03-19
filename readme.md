@@ -79,7 +79,21 @@ const result = norm.normalize(data.posts)
 :tada: :tada: :tada:
 
 ---
+# Table of Contents
+* ### [Basic Usage](#Usage)
+  * [Basic Single Node](#basic-single-node)
+  * [Basic Multi Node](#basic-multi-node)
+* ### [API](#api)
+  * [`Norm({silent})`](#constructor)
+  * [`norm.addRoot(name, subNodes, options)`](#addRoot)
+  * [`subNode.define(subNodes, options)`](#define)
+  * [`norm.normalize(data)`](#normalize)
+  * [`Options`](#options)
+* ### [Advanced Examples](#advanced)
+  * [Customizing Single Node Structures](#customSingleNode)
+  * [Multi branch with every option](#multiBranch)
 
+---
 # Usage
 
 ### Basic Single Node
@@ -216,7 +230,7 @@ result = {
 ---
 
 # API
-
+<a name="constructor"></a>
 #### `Norm({silent: boolean}) : norm`
 `default silent = true`
 
@@ -497,7 +511,7 @@ result = {
 ```
 > Note: the `id` key cannot be modified in the `options.transform()` function
 ---
-
+<a name="advanced"></a>
 # Advanced examples
 
 <a name="customSingleNode"></a>
