@@ -2,10 +2,88 @@
 
 # NORM
 
-Turn your messy data into organized bliss, with lots of customization
+Turn your messy data into organized bliss, with lots of customization along the way
 
 Turns this
 
+```javascript
+const data = {
+  posts: [
+    {
+      id: '0000',
+      description: 'A post about nothing',
+      thumbnail: {
+        url: 'pathToImage',
+        id: '0003',
+      }
+    },
+    {
+      id: '0001',
+      description: 'A post about something',
+      thumbnail: {
+        url: 'pathToImage',
+        id: '0004',
+      }
+    },
+    {
+      id: '0002',
+      description: 'A post about life',
+      thumbnail: {
+        url: 'pathToImage',
+        id: '0005',
+      }
+    },
+  ]
+}
+```
+into
+```javascript
+const result = {
+  posts: {
+    byId: {
+      '0000': {
+        id: '0000',
+        description: 'A post about nothing',
+        thumbnail: ['0003'],
+      },
+      '0001': {
+        id: '0001',
+        description: 'A post about something',
+        thumbnail: ['0004'],
+      },
+      '0002': {
+        id: '0002',
+        description: 'A post about life',
+        thumbnail: ['0005'],
+      },
+    },
+    allIds: ['0000', '0001', '0002'],
+  },
+  thumbnail: {
+    byId: {
+      '0003': { url: 'pathToImage', id: '0003' },
+      '0004': { url: 'pathToImage', id: '0004' },
+      '0005': { url: 'pathToImage', id: '0005' },
+    },
+    allIds: ['0003', '0004', '0005'],
+  },
+}
+```
+And this is all the code you need to do it:
+```javascript
+const norm = new Norm()
+norm.addRoot('posts', {thumbnail: 'id'})
+
+const result = norm.normalize(data.posts)
+```
+:tada: :tada: :tada:
+
+---
+
+# Usage
+
+### Basic Single Node
+All you need to get started is:
 ```javascript
 const data = {
   "posts": [
@@ -24,7 +102,16 @@ const data = {
   ]
 }
 ```
-into
+A minimal setup:
+```javascript
+import Norm from '@artisnull/norm'
+
+const norm = new Norm()
+norm.addRoot('posts')
+
+const result = norm.normalize(data.posts)
+```
+Which gives you:
 ```javascript
 const result = {
   "posts": {
@@ -46,22 +133,7 @@ const result = {
   }
 }
 ```
-:tada: :tada: :tada:
-
 ---
-
-# Usage
-
-### Basic Single Node
-Using the example above, all you need to get started is:
-```javascript
-import Norm from '@artisnull/norm'
-
-const norm = new Norm()
-norm.addRoot('posts')
-
-const result = norm.normalize(data.posts)
-```
 
 ### Basic Multi Node
 What if our example had __nested data__ that we also wanted to normalize?
@@ -161,6 +233,7 @@ const norm = new Norm()
 <a name="addRoot"></a>
 #### `norm.addRoot(name: string, subNodes: object, options: [Options](#options)) : {[subNodeName]: subNode, ...subNodes}`
 Defines the root node of your data, allowing you describe the associated subnodes, and customize how you want the normalization process to take place.
+> The root is always normalized by the key `id`. If you need another key used instead, see [Customizing single node structure](#customSingleNode)
 
 Returns subNodes corresponding to the subNodes you passed in.
 
@@ -216,6 +289,7 @@ const options = {
     }
 }
 ```
+An example using every option is included: [Multi Branch with every option](#multiBranch)
 ---
 #### `options.additionalIds : Array<string>`
 Define additional ids to be included in allIds.
@@ -241,9 +315,11 @@ node.define(undefined, {
 ```
 After normalizing:
 ```javascript
-result.node = {
-    byId:{...},
-    allIds: [{'id': 'id', type: 'node'}]
+result = {
+    node: {
+        byId:{...},
+        allIds: [{'id': 'id', type: 'node'}]
+    }
 }
 ```
 ---
@@ -262,20 +338,18 @@ Note: _Called __before__ `options.transform()`_
 Usage:
 ```javascript
 // Given this data
-const data = {
-    node: [
-        {
-            id: 'id',
-            type: null
-        },
-        {
-            id: 'id2',
-            type: 'node'
-        },
-    ]
-}
+const data = [
+    {
+        id: 'id',
+        type: null
+    },
+    {
+        id: 'id2',
+        type: 'node'
+    },
+]
 // Given this node
-node.define(undefined, {
+norm.addRoot('node', {}, {
     // Should be in the form
     filter: slice => {
         // slice = corresponding {id, type} object
@@ -285,11 +359,13 @@ node.define(undefined, {
 ```
 After normalizing:
 ```javascript
-result.node = {
-    byId:{
-        id2: {...}
-    },
-    allIds: ['id2']
+result = {
+    node: {
+        byId:{
+            id2: {...}
+        },
+        allIds: ['id2']
+    }
 }
 ```
 ---
@@ -421,4 +497,199 @@ result = {
 ```
 > Note: the `id` key cannot be modified in the `options.transform()` function
 ---
+
+# Advanced examples
+
+<a name="customSingleNode"></a>
+### Customizing Single Node Structures
+#### Problem
+Because the root node is always normalized by `id`, you may run into issues with data like this:
+```javascript
+const data = [
+    {name: 'Paul'},
+    {name: 'Jill'},
+    {name: 'Sam'},
+]
+norm.addRoot('users')
+norm.normalize(data) // won't work :(
+```
+There's no `id` keys to normalize by!
+
+#### Solution
+Wrap the data with a root node that will be omitted
+```javascript
+const data = [
+    {name: 'Paul'},
+    {name: 'Jill'},
+    {name: 'Sam'},
+]
+const {users} = norm.addRoot('root', {users: 'name'}, {omit: true})
+norm.normalize({users: data}) // WILL work :)
+```
+Now `users` will be normalized by `name` as desired.
+
+---
+<a name="multiBranch"></a>
+### Multi branch with every option
+Let's take more complicated data, and use every available option
+```javascript
+{
+  return {
+    posts: [
+      {
+        id: '0000',
+        description: 'A post about nothing',
+        thumbnail: {
+          url: 'pathToImage',
+          id: '0003',
+        },
+        user: {
+          name: 'Albert',
+          type: 'normal',
+          thumbnail: {
+            url: 'pathToImage',
+            id: '0000',
+          },
+        },
+      },
+      {
+        id: '0001',
+        description: 'A post about something',
+        thumbnail: {
+          url: 'pathToImage',
+          id: '0004',
+        },
+        user: {
+          name: 'James',
+          type: 'normal',
+          thumbnail: {
+            url: 'pathToImage',
+            id: '0001',
+          },
+        },
+      },
+      {
+        id: '0002',
+        description: 'A post about life',
+        thumbnail: {
+          url: 'pathToImage',
+          id: '0004',
+        },
+        user: {
+          name: 'Samantha',
+          type: 'normal',
+          thumbnail: {
+            url: 'pathToImage',
+            id: '0002',
+          },
+        },
+      },
+    ],
+    meta: {
+      posts: {
+        allUsers: [
+          {
+            name: 'Albert',
+            type: 'normal',
+            thumbnail: {
+              url: 'pathToImage',
+              id: '0000',
+            },
+          },
+          {
+            name: 'James',
+            type: 'normal',
+            thumbnail: {
+              url: 'pathToImage',
+              id: '0001',
+            },
+          },
+          {
+            name: 'Samantha',
+            type: 'normal',
+            thumbnail: {
+              url: 'pathToImage',
+              id: '0002',
+            },
+          },
+        ]
+      }
+    }
+  }
+}
+```
+We want to have a lot of control over this one:
+```javascript
+const norm = new Norm()
+const { renamedPosts } = norm.addRoot(
+    'root',
+    { renamedPosts: 'id' },
+    {
+    resolve: {
+        renamedPosts: slice => 'slice.posts', // renames posts => renamedPosts
+    },
+    omit: true, // don't save root node
+    },
+)
+
+const { thumbnail } = renamedPosts.define(
+    { thumbnail: 'id' },
+    {
+    resolve: {
+        thumbnail: slice => 'slice.user.thumbnail', // subNode is nested in another object
+    },
+    filter: slice => slice.id === '0002', // only allow the node with id === '0002'
+    additionalIds: ['description'], // add 'description' to allIds
+    },
+)
+
+thumbnail.define({}, {
+    transform: slice => { // delete the url from the thumbnail subNode
+        const s = {...slice}
+        delete s.url
+        return s
+    },
+})
+const result = norm.normalize(sampleData)
+```
+
+Which results in:
+```javascript
+{
+    "thumbnail": {
+        "byId": {
+            "0000": {
+                "id": "0000"
+            },
+            "0001": {
+                "id": "0001"
+            },
+            "0002": {
+                "id": "0002"
+            }
+        },
+        "allIds": ["0000", "0001", "0002"]
+    },
+    "renamedPosts": {
+        "byId": {
+            "0002": {
+                "id": "0002",
+                "description": "A post about life",
+                "thumbnail": {
+                    "url": "pathToImage",
+                    "id": "0004"
+                },
+                "user": {
+                    "name": "Samantha",
+                    "type": "normal",
+                    "thumbnail": ["0002"]
+                }
+            }
+        },
+        "allIds": [{"id": "0002", "description": "A post about life"}]
+    }
+}
+```
+> Note that `renamedPosts.thumbnail` is not normalized, this is becuse we resolved the `thumbnail` subNode to be `renamedPosts.user.thumbnail`  
+Also Note that the `meta` slice isn't in the normalized structure. It was not referenced, so it was not included.
 
