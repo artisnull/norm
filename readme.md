@@ -88,6 +88,7 @@ const result = norm.normalize(data.posts)
   * [`norm.addRoot(name, subNodes, options)`](#addRoot)
   * [`subNode.define(subNodes, options)`](#define)
   * [`norm.normalize(data)`](#normalize)
+  * [`SubNodes Definition`](#subNodes)
   * [`Options`](#options)
 * ### [Advanced Examples](#advanced)
   * [Customizing Single Node Structures](#customSingleNode)
@@ -245,7 +246,7 @@ const norm = new Norm()
 
 ---
 <a name="addRoot"></a>
-#### `norm.addRoot(name: string, subNodes: object, options: [Options](#options)) : {[subNodeName]: subNode, ...subNodes}`
+#### norm.addRoot(name: string, subNodes: object, options: [Options](#options)) : {[subNodeName]: subNode, ...subNodes}
 Defines the root node of your data, allowing you describe the associated subnodes, and customize how you want the normalization process to take place.
 > The root is always normalized by the key `id`. If you need another key used instead, see [Customizing single node structure](#customSingleNode)
 
@@ -253,8 +254,7 @@ Returns subNodes corresponding to the subNodes you passed in.
 
 You call [`subNode.define`](#define) on those subNodes to further configure the process if necessary
 
-> `subNodes` should be in the form `{[subNodeName]: 'keyToNormalizeBy'}`, or either {} or undefined if there are no subnodes  
-> For example `{thumbnail: 'id'}`, thumbnail is the subNode name and it will be normalized by the values in `thumbnail.id`
+> See [SubNodes Definition](#subNodes) for ways to define your subNodes
 
 Usage:
 ```javascript
@@ -262,14 +262,14 @@ const {thumbnail} = norm.addRoot('posts', {thumbnail: 'id'}})
 ```
 ---
 <a name="define"></a>
-#### `subNode.define(subNodes: object, options: [Options](#options)) : {[subNodeName]: node, ...subNodes}`
+#### subNode.define(subNodes: object, options: [Options](#options)) : {[subNodeName]: node, ...subNodes}
 Defines this node of your data, allowing you describe the associated subnodes, and customize how you want the normalization process to take place 
 
 Returns subNodes corresponding to the subNodes you passed in.
 
 You call [`subNode.define`](#define) on those subNodes to further configure the process if necessary
-> `subNodes` should be in the form `{[subNodeName]: 'keyToNormalizeBy'}`, or either {} or undefined if there are no subnodes  
-> For example `{thumbnail: 'id'}`, thumbnail is the subNode name and it will be normalized by the values in `thumbnail.id`
+> See [SubNodes Definition](#subNodes) for ways to define your subNodes
+
 
 Usage:
 ```javascript
@@ -278,13 +278,30 @@ const {sources} = thumbnail.define({sources: 'resolution'}, {additionalIds: ['ur
 ```
 ---
 <a name="normalize"></a>
-#### `norm.normalize(data: (object | Array<object>)) : object`
+#### norm.normalize(data: (object | Array<object>)) : object
 Normalizes your array or object based on the nodes you've defined using [`norm.addRoot`](#addRoot) and [`subNode.define`](#define)
 
 Usage:
 ```javascript
 const result = norm.normalize(data)
 ```
+---
+<a name="subNodes"></a>
+#### `SubNodes Definition: object`
+Define the subNodes you want to further normalize
+
+Can take the following forms:
+```javascript
+// The following two are equivalent
+{[subNodeName]: 'keyToNormalizeBy'}
+{[subNodeName]: slice => slice['keyToNormalizeBy']}
+
+// Or if you don't want to add subnodes, but do want to add options
+{[subNodeName]: {}, {...options}}
+{[subNodeName]: undefined, {...options}}
+```
+> For example `{thumbnail: 'id'}`, thumbnail is the subNode name and it will be normalized by the values in `thumbnail.id` and is equivalent to {thumbnail: slice => slice.id}
+
 ---
 <a name="options"></a>
 #### `Options : object`

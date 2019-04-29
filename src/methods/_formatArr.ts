@@ -13,21 +13,28 @@ export default function _formatArr({
 
   // iterate through each item and structure into byId,allIds format
   data.forEach(item => {
+    let finalId = item[id]
+    
+    // handle id as function
+    if (typeof id === 'function') {
+      finalId = id(item)
+    }
+    
     // ensure items pass filter
     if (filter(item)) {
       // make byId
-      byId[item[id]] = {
+      byId[finalId] = {
         ...transform(item), // transform the object data if desired
-        id: item[id], // always include id
+        id: finalId, // always include id
       }
 
       // make allIds
       // if no additional ids, don't make an object, just push the id
       if (additionalIds.length < 1) {
-        allIds.push(item[id])
+        allIds.push(finalId)
       } else {
         // additionalIds are present
-        let idObj = { id: item[id] }
+        let idObj = { id: finalId }
         additionalIds.forEach(key => {
           idObj[key] = item[key]
         })

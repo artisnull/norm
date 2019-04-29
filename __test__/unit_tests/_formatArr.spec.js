@@ -51,6 +51,47 @@ describe('norm :: _formatArr', () => {
         },
       })
     })
+    it('should handle ID as a function and return {byId, allIds}', () => {
+      const data = sampleData().posts
+      const id = slice => slice.id
+      const norm = mockNorm()
+      const res = norm.formatArr({ data, id })
+      expect(res).toMatchObject({
+        allIds: ['0000', '0001', '0002'],
+        byId: {
+          '0000': {
+            description: 'A post about nothing',
+            id: '0000',
+            thumbnail: { id: '0003', url: 'pathToImage' },
+            user: {
+              name: 'Albert',
+              thumbnail: { id: '0000', url: 'pathToImage' },
+              type: 'normal',
+            },
+          },
+          '0001': {
+            description: 'A post about something',
+            id: '0001',
+            thumbnail: { id: '0004', url: 'pathToImage' },
+            user: {
+              name: 'James',
+              thumbnail: { id: '0001', url: 'pathToImage' },
+              type: 'normal',
+            },
+          },
+          '0002': {
+            description: 'A post about life',
+            id: '0002',
+            thumbnail: { id: '0004', url: 'pathToImage' },
+            user: {
+              name: 'Samantha',
+              thumbnail: { id: '0002', url: 'pathToImage' },
+              type: 'normal',
+            },
+          },
+        },
+      })
+    })
   })
   describe('when using filter()', () => {
     it('should only normalize items that pass filter', () => {
